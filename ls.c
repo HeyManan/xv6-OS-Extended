@@ -4,7 +4,7 @@
 #include "fs.h"
 
 char*
-fmtname(char *path)
+fmtname(char *path, short type)
 {
   static char buf[DIRSIZ+1];
   char *p;
@@ -13,6 +13,12 @@ fmtname(char *path)
   for(p=path+strlen(path); p >= path && *p != '/'; p--)
     ;
   p++;
+
+  //Adding '/' at the end if the type is Directory
+  if (type == T_DIR) {
+    *(p+strlen(p)) = '/';
+    *(p+strlen(p)) = '\0';
+  }
 
   // Return blank-padded name.
   if(strlen(p) >= DIRSIZ)
@@ -43,7 +49,7 @@ ls(char *path)
 
   switch(st.type){
   case T_FILE:
-    printf(1, "%s %d %d %d\n", fmtname(path), st.type, st.ino, st.size);
+    printf(1, "%s %d %d %d\n", fmtname(path, st.type), st.type, st.ino, st.size);
     break;
 
   case T_DIR:
@@ -57,13 +63,18 @@ ls(char *path)
     while(read(fd, &de, sizeof(de)) == sizeof(de)){
       if(de.inum == 0)
         continue;
+
+      //Skipping the hidden files and directories, that is the files whose name starts with "."
+      if (de.name[0] == '.')
+        continue;
+
       memmove(p, de.name, DIRSIZ);
       p[DIRSIZ] = 0;
       if(stat(buf, &st) < 0){
         printf(1, "ls: cannot stat %s\n", buf);
         continue;
       }
-      printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+      printf(1, "%s %d %d %d\n", fmtname(buf, st.type), st.type, st.ino, st.size);
     }
     break;
   }
