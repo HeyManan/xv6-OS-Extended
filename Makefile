@@ -184,6 +184,7 @@ UPROGS=\
 	_hello\
 	_sleep\
 	_sort\
+	_ticktest\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

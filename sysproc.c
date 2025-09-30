@@ -96,3 +96,13 @@ sys_hello()
   cprintf("Hello from Kernel Mode!\n");
   return 0;
 }
+
+int
+sys_ticks_running(void)
+{
+  int pid;
+  // argint(0, &pid) gets the first integer argument from the user
+  if(argint(0, &pid) < 0)
+    return -1;
+  return get_ticks_running(pid);
+}

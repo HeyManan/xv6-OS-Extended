@@ -120,7 +120,7 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
-
+int             get_ticks_running(int);
 // swtch.S
 void            swtch(struct context**, struct context*);
 
