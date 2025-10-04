@@ -118,11 +118,6 @@ main(int argc, char *argv[])
   char *filename = 0;
   int i;
 
-  if (argc < 2) {
-    printf(2, "usage: sort <filename>\n");
-    exit();
-  }
-
   for (i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-r") == 0) {
       flag_reverse = 1;

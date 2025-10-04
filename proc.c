@@ -20,6 +20,14 @@ extern void trapret(void);
 
 static void wakeup1(void *chan);
 
+static uint next_rand = 1;
+static uint
+rand(void)
+{
+  next_rand = next_rand * 1664525 + 1013904223;
+  return next_rand;
+}
+
 void
 pinit(void)
 {
@@ -89,6 +97,7 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->ticks = 0;
+  p->job_length = (rand()%100)+1;
 
   release(&ptable.lock);
 
@@ -331,6 +340,7 @@ scheduler(void)
     // Enable interrupts on this processor.
     sti();
 
+#ifdef DEFAULT
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
@@ -352,7 +362,32 @@ scheduler(void)
       c->proc = 0;
     }
     release(&ptable.lock);
+#endif
 
+#ifdef SJF
+    struct proc *shortest_job = 0;
+
+    acquire(&ptable.lock);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+
+      if (shortest_job == 0 || p->job_length < shortest_job->job_length) {
+        shortest_job = p;
+      }
+    }
+
+    if(shortest_job != 0){
+      p = shortest_job;
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+      c->proc = 0;
+    }
+    release(&ptable.lock);
+#endif
   }
 }
 
@@ -550,4 +585,24 @@ get_ticks_running(int pid)
   release(&ptable.lock);
 
   return ticks;
+}
+
+int
+get_job_length(int pid)
+{
+  struct proc *p;
+  int length = -1;
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+      if (p->state == SLEEPING || p->state == RUNNABLE || p->state == RUNNING) {
+        length = p->job_length;
+      }
+      break;
+    }
+  }
+  release(&ptable.lock);
+
+  return length;
 }
