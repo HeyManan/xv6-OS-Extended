@@ -98,6 +98,7 @@ found:
   p->pid = nextpid++;
   p->ticks = 0;
   p->job_length = (rand()%100)+1;
+  p->priority = MEDIUM_PRIORITY;
 
   release(&ptable.lock);
 
@@ -388,6 +389,32 @@ scheduler(void)
     }
     release(&ptable.lock);
 #endif
+
+#ifdef PRIORITYRR
+    acquire(&ptable.lock);
+
+    int found_and_ran = 0;
+    for (int prio = HIGH_PRIORITY; prio >= LOW_PRIORITY; prio--) {
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state == RUNNABLE && p->priority == prio){
+          c->proc = p;
+          switchuvm(p);
+          p->state = RUNNING;
+          swtch(&(c->scheduler), p->context);
+          switchkvm();
+          c->proc = 0;
+
+          found_and_ran = 1;
+          break;
+        }
+      }
+
+      if (found_and_ran) {
+        break;
+      }
+    }
+    release(&ptable.lock);
+#endif
   }
 }
 
@@ -605,4 +632,25 @@ get_job_length(int pid)
   release(&ptable.lock);
 
   return length;
+}
+
+int
+get_priority(int pid)
+{
+  struct proc *p;
+  int priority = -1;
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+
+      if (p->state == SLEEPING || p->state == RUNNABLE || p->state == RUNNING) {
+        priority = p->priority;
+      }
+      break;
+    }
+  }
+  release(&ptable.lock);
+
+  return priority;
 }

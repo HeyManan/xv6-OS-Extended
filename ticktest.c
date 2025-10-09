@@ -10,18 +10,16 @@ main(void)
 
     printf(1, "--- Testing ticks_running() ---\n");
 
-    // Test case 1: Non-existent process
+
     printf(1, "1. Testing non-existent PID (999): ");
     if(ticks_running(999) == -1)
         printf(1, "OK\n");
     else
         printf(1, "FAIL\n");
 
-    // Test case 2: Check current process's ticks
     start_ticks = ticks_running(my_pid);
     printf(1, "2. My PID (%d) initial running ticks: %d\n", my_pid, start_ticks);
 
-    // Test case 3: Do some work to accumulate ticks
     printf(1, "3. Performing some work...\n");
     for(int i = 0; i < 200000000; i++){
         // Busy loop
@@ -35,18 +33,15 @@ main(void)
     else
         printf(1, "5. Ticks did not increase: FAIL\n");
 
-    // --- NEW TEST CASE ---
     printf(1, "6. Testing unscheduled child process:\n");
     int child_pid = fork();
 
     if (child_pid < 0) {
         printf(1, "   Fork failed! Test inconclusive.\n");
     } else if (child_pid == 0) {
-        // Child process: Do nothing and exit.
-        // By the time this code runs, the parent has likely already checked.
+
         exit();
     } else {
-        // Parent process: Immediately check the child's ticks.
         int child_ticks = ticks_running(child_pid);
         printf(1, "   Parent immediately checked child PID %d.\n", child_pid);
         printf(1, "   Ticks returned: %d\n", child_ticks);
@@ -55,7 +50,6 @@ main(void)
         } else {
             printf(1, "   Result: FAIL (Expected 0)\n");
         }
-        // Clean up the child process
         wait();
     }
 

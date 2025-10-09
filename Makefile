@@ -188,6 +188,7 @@ UPROGS=\
 	_sort\
 	_ticktest\
 	_sjftest\
+	_prtest\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

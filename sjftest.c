@@ -1,4 +1,3 @@
-// sjftest.c with sleep to prevent race condition
 #include "types.h"
 #include "stat.h"
 #include "user.h"
@@ -19,11 +18,11 @@ main(void)
 {
     printf(1, "--- SJF Scheduler Test ---\n");
 
-    // Fork three children
+
     int pid1 = fork();
     if(pid1 == 0){
-        sleep(5); // NEW: Wait a moment before starting work
-        printf(1, "Child 1 (short work) starting.\n");
+        sleep(5);
+        printf(1, "Child 1 starting.\n");
         busy_work(5);
         printf(1, "Child 1 finished.\n");
         exit();
@@ -31,8 +30,8 @@ main(void)
 
     int pid2 = fork();
     if(pid2 == 0){
-        sleep(5); // NEW: Wait a moment before starting work
-        printf(1, "Child 2 (long work) starting.\n");
+        sleep(5);
+        printf(1, "Child 2 starting.\n");
         busy_work(20);
         printf(1, "Child 2 finished.\n");
         exit();
@@ -40,15 +39,14 @@ main(void)
 
     int pid3 = fork();
     if(pid3 == 0){
-        sleep(5); // NEW: Wait a moment before starting work
-        printf(1, "Child 3 (medium work) starting.\n");
+        sleep(5);
+        printf(1, "Child 3 starting.\n");
         busy_work(10);
         printf(1, "Child 3 finished.\n");
         exit();
     }
 
     printf(1, "Parent: Forked three children.\n");
-    // Give a moment for children to be created before checking
     sleep(1);
 
     printf(1, "Parent checking job lengths:\n");

@@ -115,3 +115,27 @@ sys_sjf_job_length(void)
     return -1;
   return get_job_length(pid);
 }
+
+int
+sys_get_sched_priority(void)
+{
+  int pid;
+  if(argint(0, &pid) < 0)
+    return -1;
+  return get_priority(pid);
+}
+
+int
+sys_set_sched_priority(void)
+{
+  int priority;
+  if(argint(0, &priority) < 0)
+    return -1;
+
+  if (priority < LOW_PRIORITY || priority > HIGH_PRIORITY)
+    return -1;
+
+  myproc()->priority = priority;
+
+  return 0;
+}

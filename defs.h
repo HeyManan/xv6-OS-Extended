@@ -122,6 +122,7 @@ void            wakeup(void*);
 void            yield(void);
 int             get_ticks_running(int);
 int             get_job_length(int);
+int             get_priority(int);
 // swtch.S
 void            swtch(struct context**, struct context*);
 
