@@ -29,6 +29,7 @@ OBJS = \
 	vm.o\
 
 SCHEDULER=DEFAULT
+ALLOCATOR=LAZY
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
 
@@ -79,6 +80,7 @@ OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -fno-omit-frame-pointer
 CFLAGS += -D$(SCHEDULER)
+CFLAGS += -D$(ALLOCATOR)
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
 # FreeBSD ld wants ``elf_i386_fbsd''
@@ -189,6 +191,7 @@ UPROGS=\
 	_ticktest\
 	_sjftest\
 	_prtest\
+	_heaptest\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

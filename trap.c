@@ -126,11 +126,12 @@ trap(struct trapframe *tf)
     break;
   case T_PGFLT:
       uint va;
-      char *mem;
-
       va = rcr2();
+
+  #ifdef LAZY
       if (va < KERNBASE && va < myproc()->sz) {
-        mem = kalloc();
+        cprintf("LAZY ALLOC: pid %d fault at 0x%x, mapping 1 page.\n", myproc()->pid, PGROUNDDOWN(va));
+        char *mem = kalloc();
         if (mem == 0) {
           cprintf("lazy alloc: kalloc failed for pid %d\n", myproc()->pid);
         }
@@ -144,6 +145,32 @@ trap(struct trapframe *tf)
           else break;
         }
       }
+  #endif
+
+  #ifdef LOCALITY
+      cprintf("LOCALITY ALLOC: pid %d fault at 0x%x. Allocating 3 pages:\n", myproc()->pid, PGROUNDDOWN(va));
+      for (int i = 0; i < 3; i++) {
+        uint new_va = PGROUNDDOWN(va)+(i*PGSIZE);
+
+        if (new_va < KERNBASE && new_va < myproc()->sz) {
+          cprintf("  -> mapping page at 0x%x\n", new_va);
+          char *mem = kalloc();
+          if (mem == 0) {
+            cprintf("locality alloc: kalloc failed for pid %d\n", myproc()->pid);
+            break;
+          }
+
+          memset(mem, 0, PGSIZE);
+
+          if (mappages(myproc()->pgdir, (void*)new_va, PGSIZE, V2P(mem), PTE_W|PTE_U) < 0) {
+            cprintf("locality alloc: mapping failed for pid %d ", myproc()->pid);
+            kfree(mem);
+            break;
+          }
+        }
+      }
+      break;
+  #endif
 
       cprintf("pid %d %s: trap %d err %d on cpu %d "
             "eip 0x%x addr 0x%x--kill proc\n",

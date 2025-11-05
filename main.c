@@ -25,6 +25,12 @@ main(void)
   picinit();       // disable pic
   ioapicinit();    // another interrupt controller
   consoleinit();   // console hardware
+#ifdef LAZY
+  cprintf("ALLOCATOR MODE: LAZY\n");
+#endif
+#ifdef LOCALITY
+  cprintf("ALLOCATOR MODE: LOCALITY\n");
+#endif
   uartinit();      // serial port
   pinit();         // process table
   tvinit();        // trap vectors
