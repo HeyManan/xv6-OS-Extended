@@ -25,3 +25,4 @@
 #define SYS_sjf_job_length 24
 #define SYS_get_sched_priority 25
 #define SYS_set_sched_priority 26
+#define SYS_lseek  27

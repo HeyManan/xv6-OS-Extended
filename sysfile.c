@@ -442,3 +442,25 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+
+int
+sys_lseek(void)
+{
+  int fd;
+  int offset;
+  struct file *f;
+
+  if(argfd(0, &fd, &f) < 0 || argint(1, &offset) < 0)
+    return -1;
+
+  if(f->type != FD_INODE)
+    return -1;
+
+  if(f->off + offset < 0)
+    return -1;
+
+  f->off += offset;
+
+  return f->off;
+}

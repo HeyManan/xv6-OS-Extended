@@ -192,6 +192,7 @@ UPROGS=\
 	_sjftest\
 	_prtest\
 	_heaptest\
+	_lseektest\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

@@ -10,6 +10,8 @@
 #include "sleeplock.h"
 #include "file.h"
 
+#include "stat.h"
+
 struct devsw devsw[NDEV];
 struct {
   struct spinlock lock;
@@ -131,6 +133,35 @@ filewrite(struct file *f, char *addr, int n)
     // this really belongs lower down, since writei()
     // might be writing a device like the console.
     int max = ((MAXOPBLOCKS-1-1-2) / 2) * 512;
+    while(f->off > f->ip->size){
+      begin_op();
+      ilock(f->ip);
+      if(f->ip->type != T_FILE){
+        iunlock(f->ip);
+        end_op();
+        break;
+      }
+      int n1 = (f->off) - (f->ip->size);
+      if(n1 > max)
+        n1 = max;
+
+      char zeros[128];
+      memset(zeros, 0, sizeof(zeros));
+      if (n1 > sizeof(zeros))
+        n1 = sizeof(zeros);
+
+      if (f->off > f->ip->size)
+        r = writei(f->ip, zeros, f->ip->size, n1);
+      else
+        r = 0;
+
+      iunlock(f->ip);
+      end_op();
+
+      if(r < 0)
+        break;
+    }
+
     int i = 0;
     while(i < n){
       int n1 = n - i;
