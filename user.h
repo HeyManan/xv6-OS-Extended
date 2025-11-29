@@ -45,3 +45,4 @@ void* malloc(uint);
 void free(void*);
 int atoi(const char*);
 int lseek(int, int);
+int symlink(char*, char*);
