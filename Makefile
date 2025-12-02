@@ -194,6 +194,7 @@ UPROGS=\
 	_heaptest\
 	_lseektest\
 	_symlinktest\
+	_largefile\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
