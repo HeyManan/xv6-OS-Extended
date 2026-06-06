@@ -26,6 +26,10 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int hello(void);
+int ticks_running(int);
+int sjf_job_length(int);
+int get_sched_priority(int);
+int set_sched_priority(int);
 
 // ulib.c
 int stat(const char*, struct stat*);
