@@ -307,6 +307,35 @@ sys_open(void)
       return -1;
     }
     ilock(ip);
+    if(ip->type == T_SYMLINK && !(omode & O_NOFOLLOW)) {
+      int depth = 0;
+      char target[512];
+      while(ip->type == T_SYMLINK){
+        if(depth >= 10){
+          iunlockput(ip);
+          end_op();
+          return -1;
+        }
+
+        memset(target, 0, sizeof(target));
+        if(readi(ip, target, 0, sizeof(target)) < 0){
+          iunlockput(ip);
+          end_op();
+          return -1;
+        }
+
+        iunlockput(ip);
+
+        if((ip = namei(target)) == 0){
+          end_op();
+          return -1;
+        }
+
+        ilock(ip);
+        depth++;
+      }
+    }
+
     if(ip->type == T_DIR && omode != O_RDONLY){
       iunlockput(ip);
       end_op();
@@ -440,5 +469,55 @@ sys_pipe(void)
   }
   fd[0] = fd0;
   fd[1] = fd1;
+  return 0;
+}
+
+
+int
+sys_lseek(void)
+{
+  int fd;
+  int offset;
+  struct file *f;
+
+  if(argfd(0, &fd, &f) < 0 || argint(1, &offset) < 0)
+    return -1;
+
+  if(f->type != FD_INODE)
+    return -1;
+
+  if(f->off + offset < 0)
+    return -1;
+
+  f->off += offset;
+
+  return f->off;
+}
+
+int
+sys_symlink(void)
+{
+  char *target;
+  char *path;
+  struct inode *ip;
+
+  if(argstr(0, &target) < 0 || argstr(1, &path) < 0)
+    return -1;
+
+  begin_op();
+
+  if((ip = create(path, T_SYMLINK, 0, 0)) == 0){
+    end_op();
+    return -1;
+  }
+
+  if(writei(ip, target, 0, strlen(target)) != strlen(target)){
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+
+  iunlockput(ip);
+  end_op();
   return 0;
 }
